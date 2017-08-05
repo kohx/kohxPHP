@@ -1,6 +1,6 @@
 <?php
 
-$base_dir = 'sbx_fw/base';
+$base_dir = 'kohxPHP/base';
 $app_dir = 'app';
 $core_dir = 'core';
 

@@ -3,7 +3,7 @@
 namespace core;
 
 /**
- * Array class
+ * Route class
  *
  * @author kohei okuda
  */
@@ -40,17 +40,20 @@ class Router {
 
     public function __construct($routes = [])
     {
+        $this->route = Request::route();
+        
         // When has toutes
         if ($routes)
         {
             // Set routes
-            foreach ($routes as $url => $route)
+            foreach ($routes as $route => $route)
             {
+                Debug::v($route);
                 $controller = Arr::get($route, 'controller');
                 $action = Arr::get($route, 'controller');
                 $func = Arr::get($route, 'controller');
 
-                $this->set($url, $controller, $action, $func);
+//                $this->set($url, $controller, $action, $func);
             }
         }
     }
