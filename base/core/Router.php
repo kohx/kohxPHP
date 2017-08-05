@@ -40,47 +40,58 @@ class Router {
 
     public function __construct($routes = [])
     {
-        $this->routes = $routes;
-        $this->route = Request::route();
+        // When has toutes
+        if ($routes)
+        {
+            // Set routes
+            foreach ($routes as $url => $route)
+            {
+                $controller = Arr::get($route, 'controller');
+                $action = Arr::get($route, 'controller');
+                $func = Arr::get($route, 'controller');
+
+                $this->set($url, $controller, $action, $func);
+            }
+        }
     }
-    
+
     /**
-	 * Set
-	 * 
-	 * @param string $url
-	 * @param string $controller
-	 * @param string $action
-	 */
-	public function set($url, $controller = null, $action = null, callable $func = null)
-	{
-		if (strlen($url) > 1 AND substr($url, -1) === '/')
-		{
-			$url = rtrim($url, '/');
-		}
+     * Set
+     * 
+     * @param string $url
+     * @param string $controller
+     * @param string $action
+     */
+    public function set($url, $controller = null, $action = null, callable $func = null)
+    {
+        if (strlen($url) > 1 AND substr($url, -1) === '/')
+        {
+            $url = rtrim($url, '/');
+        }
 
-		// Create route strings array and set url
-		$this->_route_strings[$url]['url'] = $url;
+        // Create route strings array and set url
+        $this->_route_strings[$url]['url'] = $url;
 
-		// has controller
-		if (!is_null($controller))
-		{
-			$this->_route_strings[$url]['controller'] = $controller;
-		}
+        // has controller
+        if (!is_null($controller))
+        {
+            $this->_route_strings[$url]['controller'] = $controller;
+        }
 
-		// has action
-		if (!is_null($action))
-		{
-			$this->_route_strings[$url]['action'] = $action;
-		}
+        // has action
+        if (!is_null($action))
+        {
+            $this->_route_strings[$url]['action'] = $action;
+        }
 
-		// has func
-		if (!is_null($func))
-		{
-			$this->_route_strings[$url]['func'] = $func;
-		}
+        // has func
+        if (!is_null($func))
+        {
+            $this->_route_strings[$url]['func'] = $func;
+        }
 
-		return $this;
-	}
+        return $this;
+    }
 
     public function dispatch()
     {
@@ -150,7 +161,7 @@ class Router {
         }
         catch (\Exception $exc)
         {
-            echo $exc->getMessage(). '<br />';
+            echo $exc->getMessage() . '<br />';
             echo nl2br($exc->getTraceAsString());
         }
     }
