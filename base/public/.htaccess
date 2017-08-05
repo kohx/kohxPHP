@@ -1,0 +1,38 @@
+<IfModule mod_rewrite.c>
+
+	RewriteEngine on
+
+	Options +FollowSymLinks -Indexes
+    <IfModule mod_fcgid.c>
+        RewriteCond %{HTTP:Authorization} .
+        RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    </IfModule>
+
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+
+	<IfModule mod_fcgid.c>
+        RewriteRule ^(.*)$ index.php?/$1 [QSA,L]
+	</IfModule>
+
+	<IfModule !mod_fcgid.c>
+
+		<IfModule mod_php5.c>
+			RewriteRule ^(.*)$ index.php/$1 [L]
+		</IfModule>
+
+		<IfModule !mod_php5.c>
+
+			<IfModule mod_php7.c>
+				RewriteRule ^(.*)$ index.php/$1 [L]
+			</IfModule>
+
+			<IfModule !mod_php7.c>
+				RewriteRule ^(.*)$ index.php?/$1 [QSA,L]
+			</IfModule>
+
+		</IfModule>
+
+	</IfModule>
+
+</IfModule>
