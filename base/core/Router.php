@@ -18,8 +18,6 @@ class Router {
     // instance
     protected static $instance = null;
     // routes
-    protected $route_strings = [];
-    // compiled routes
     protected $routes = [];
     //
     protected $route = null;
@@ -46,14 +44,13 @@ class Router {
         if ($routes)
         {
             // Set routes
-            foreach ($routes as $route => $route)
+            foreach ($routes as $key => $value)
             {
-                Debug::v($route);
-                $controller = Arr::get($route, 'controller');
-                $action = Arr::get($route, 'controller');
-                $func = Arr::get($route, 'controller');
+                $controller = Arr::get($value, 'controller');
+                $action = Arr::get($value, 'action');
+                $func = Arr::get($value, 'func');
 
-//                $this->set($url, $controller, $action, $func);
+                $this->set($key, $controller, $action, $func);
             }
         }
     }
@@ -65,39 +62,44 @@ class Router {
      * @param string $controller
      * @param string $action
      */
-    public function set($url, $controller = null, $action = null, callable $func = null)
+    public function set(string $url, string $controller = null, string $action = null, callable $func = null)
     {
-        if (strlen($url) > 1 AND substr($url, -1) === '/')
-        {
-            $url = rtrim($url, '/');
-        }
-
-        // Create route strings array and set url
-        $this->_route_strings[$url]['url'] = $url;
-
-        // has controller
-        if (!is_null($controller))
-        {
-            $this->_route_strings[$url]['controller'] = $controller;
-        }
-
-        // has action
-        if (!is_null($action))
-        {
-            $this->_route_strings[$url]['action'] = $action;
-        }
-
-        // has func
-        if (!is_null($func))
-        {
-            $this->_route_strings[$url]['func'] = $func;
-        }
+        $this->routes[$url] = [
+            'url' => $url,
+            'controller' => $controller,
+            'action' => $action,
+            'func' => $func,
+        ];
 
         return $this;
     }
 
+    protected function compile()
+    {
+        // Iterate route strings
+        foreach ($this->routes as $url => $params)
+        {
+            $segments = explode('/', ltrim($url, '/'));
+
+            foreach ($segments as $i => $token)
+            {
+                // has param
+                if (0 === strpos($token, ':'))
+                {
+                    $name = substr($token, 1);
+                    $token = '(?P<' . $name . '>[^/]+)';
+                }
+                $tokens[$i] = $token;
+            }
+            Debug::v($tokens);
+
+        }
+    }
+
     public function dispatch()
     {
+        $this->compile();
+
         // routing
         if ('' === $this->route)
         {
