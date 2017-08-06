@@ -12,19 +12,8 @@ class View {
     protected $view_dir = 'views';
     protected $view_ext = '.php';
     protected $file_path = '';
-
-    /**
-     * Constructor
-     * 
-     * @param string $file
-     * @param mix $values
-     */
-    public function __construct($file = null, $values = [])
-    {
-        $this->file_path = $file;
-        $this->values = $values;
-    }
-
+    
+    
     /**
      * Make instance
      * 
@@ -32,9 +21,26 @@ class View {
      * @param type $values
      * @return \static
      */
-    public static function fact($file = null, $values = [])
+    public static function fact($file = null, $values = [], $dir = null)
     {
-        return new static($file, $values);
+        return new static($file, $values, $dir);
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param string $file
+     * @param mix $values
+     */
+    public function __construct($file, $values, $dir)
+    {
+        $this->file_path = $file;
+        $this->values = $values;
+
+        if ($dir)
+        {
+            $this->view_dir = $dir;
+        }
     }
 
     public function file($file_path)
