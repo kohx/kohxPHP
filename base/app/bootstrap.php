@@ -5,14 +5,13 @@ spl_autoload_register(array('AutoLoader', 'loadClass'));
 
 use core\Router;
 use core\Config;
-use core\Debug;
 
 
-$routes = Config::inst()->read('routes')->get();
 
 /*
  * routing
  */
+$routes = Config::inst()->read('routes')->get();
 
 $router = Router::inst($routes);
 

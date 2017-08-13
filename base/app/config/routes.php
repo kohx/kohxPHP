@@ -1,27 +1,39 @@
 <?php
 
+use core\Debug;
+
 return [
-    // The default route
-    '/' => array(
+    /*
+     * The default route
+     */
+    '/' => [
         'controller' => 'home',
         'action' => 'index',
-    ),
-    // User edit
-    '/user/edit' => array(
+    ],
+    /*
+     * User edit
+     */
+    '/user/edit' => [
         'controller' => 'user',
         'action' => 'edit',
-    ),
-    // User :id
-    '/user/:id' => array(
+    ],
+    /*
+     * User detail :id
+     */
+    '/user/:id' => [
         'controller' => 'user',
-        'controller' => 'show',
-    ),
-    // Item :action
-    '/item/:action' => array(
+        'action' => 'detail',
+    ],
+    /*
+     * Item :action
+     */
+    '/item/:action' => [
         'controller' => 'item',
-    ),
-    // Home :action :id
-    '/home/:action/:id' => array(
+    ],
+    /*
+     * Home :action :id
+     */
+    '/home/:action/:id' => [
         'controller' => 'home',
         'func' => function($params)
         {
@@ -32,26 +44,31 @@ return [
             ];
             return $route;
         }
-    ),
-    // :controller index
-    '/:controller' => array(
+    ],
+    /*
+     * :controller index
+     */
+    '/:controller' => [
         'action' => 'index',
-    ),
-    // :controller :action :id
-    '/:controller/:action/:id' => array(),
+        ],
+    /*
+     * :controller :action :id
+     */
+//    '/:controller/:action/:id' => array(
+//    ),
     // :controller :action
     '/:controller/:action/' => array(),
     // not found
-    '' => array(
-        'controller' => 404,
-        'action' => 'index',
-        'func' => function($params)
-        {
-            $segments = explode('/', trim($params['url'], '/'));
-
-            if (true)
-            {
-                return ['controller' => reset($segments), 'action' => end($segments)];
-            }
-        }),
+//    '' => array(
+//        'controller' => 404,
+//        'action' => 'index',
+//        'func' => function($params)
+//        {
+//            $segments = explode('/', trim($params['pathinfo'], '/'));
+//
+//            if (true)
+//            {
+//                return ['controller' => reset($segments), 'action' => end($segments)];
+//            }
+//        }),
 ];

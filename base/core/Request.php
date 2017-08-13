@@ -1,4 +1,5 @@
 <?php
+
 /**
  * stdfw
  *
@@ -6,6 +7,7 @@
  * @copyright 2017
  * @license 
  */
+
 namespace core;
 
 /**
@@ -49,18 +51,10 @@ class Request {
         return (empty(static::server('HTTPS')) ? 'http' : 'https');
     }
     
-    /**
-	 * Base path
-	 *
-	 * @return string
-	 */
-	public static function route()
-	{
-		$request_uri = self::server('REQUEST_URI');
-        $baseurl = static::baseurl();
-        
-        return trim(str_replace($baseurl, '', trim($request_uri, '/')), '/');
-	}
+    public static function host()
+    {
+        return self::server('HTTP_HOST');
+    }
 
     /**
      * Retuen base url
@@ -73,38 +67,39 @@ class Request {
      *      protocol is bool or string
      * @return string
      */
-    public static function baseurl($protocol = null)
+    public static function baseuri()
     {
         $request_uri = self::server('REQUEST_URI');
         $script_name = self::server('SCRIPT_NAME');
-        $basepath = '';
+        $baseuri = '';
 
         // use index.php
         if (strpos($request_uri, $script_name) === 0)
         {
-            $basepath = trim($script_name, '/');
+            $baseuri = $script_name;
         }
         // not use index.php
         elseif (strpos($request_uri, dirname($script_name)) === 0)
         {
-            $basepath = trim(dirname($script_name), '/');
+            $baseuri = dirname($script_name);
         }
 
-        if ($protocol === true)
-        {
-
-            return static::protocol() . '://' . $basepath;
-        }
-        elseif (is_string($protocol))
-        {
-
-            return $protocol . '://' . $basepath;
-        }
-        else
-        {
-            return $basepath;
-        }
+        return $baseuri;
     }
+    
+    /**
+     * Base path
+     *
+     * @return string
+     */
+    public static function pathinfo()
+    {
+        $request_uri = self::server('REQUEST_URI');
+        $baseuri = static::baseuri();
+
+        return trim(str_replace($baseuri, '', trim($request_uri)), '/');
+    }
+    
 
     /**
      * If from ajax when return true
@@ -229,7 +224,7 @@ class Request {
     {
         return locale_accept_from_http(self::server('HTTP_ACCEPT_LANGUAGE'));
     }
-    
+
     public static function isPhone()
     {
         $user_agent = static::userAgent();
@@ -306,4 +301,5 @@ class Request {
             }
         }
     }
+
 }

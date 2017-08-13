@@ -20,7 +20,7 @@ class Router {
     // routes
     protected $routes = [];
     //
-    protected $route = null;
+    protected $pathinfo = null;
     protected $controller = null;
     protected $action = null;
     protected $params = [];
@@ -38,8 +38,8 @@ class Router {
 
     public function __construct($routes = [])
     {
-        $this->route = Request::route();
-        
+        $this->pathinfo = Request::pathinfo();
+
         // When has toutes
         if ($routes)
         {
@@ -58,14 +58,14 @@ class Router {
     /**
      * Set
      * 
-     * @param string $url
+     * @param string $route
      * @param string $controller
      * @param string $action
      */
-    public function set(string $url, string $controller = null, string $action = null, callable $func = null)
+    public function set(string $route, string $controller = null, string $action = null, callable $func = null)
     {
-        $this->routes[$url] = [
-            'url' => $url,
+        $this->routes[$route] = [
+            'route' => $route,
             'controller' => $controller,
             'action' => $action,
             'func' => $func,
@@ -76,44 +76,97 @@ class Router {
 
     protected function compile()
     {
-        // Iterate route strings
-        foreach ($this->routes as $url => $params)
+        // Iterate routes whith set patterns
+        foreach ($this->routes as $route => &$params)
         {
-            $segments = explode('/', ltrim($url, '/'));
+            $segments = explode('/', ltrim($route, '/'));
 
-            foreach ($segments as $i => $token)
+            $pattern = '[^/]';
+
+            foreach ($segments as $key => $value)
             {
                 // has param
-                if (0 === strpos($token, ':'))
+                if (0 === strpos($value, ':'))
                 {
-                    $name = substr($token, 1);
-                    $token = '(?P<' . $name . '>[^/]+)';
+                    $name = substr($value, 1);
+                    $value = '(?<' . $name . '>' . $pattern . '+)';
                 }
-                $tokens[$i] = $token;
+                $tokens[$key] = $value;
             }
-            Debug::v($tokens);
 
+            $params['pattern'] = '#^/' . implode('/', $tokens) . '$#';
         }
+
+        // if the first letter is not "/" addition "/"
+        if (substr($this->pathinfo, 0, 1) !== '/')
+        {
+            $this->pathinfo = '/' . $this->pathinfo;
+        }
+
+        // Iterate routes with get route params from this route
+        $result = [];
+        foreach ($this->routes as &$params)
+        {
+
+            // Declare matches
+            $matches = [];
+            if (preg_match(Arr::get($params, 'pattern'), $this->pathinfo, $matches))
+            {
+                foreach ($matches as $key => $value)
+                {
+                    // When not number set to result
+                    if (!is_numeric($key))
+                    {
+                        $params[$key] = $value;
+                    }
+                }
+
+                $result = $params;
+                break;
+            }
+            else
+            {
+                $result = $params;
+            }
+
+            $result['pathinfo'] = $this->pathinfo;
+        }
+
+        // When result has func
+        if (Arr::get($result, 'func'))
+        {
+            $temp = Arr::get($result, 'func')($result);
+            
+            foreach ($temp as $key => $value)
+            {
+                $result[$key] = $value;
+            }
+        }
+
+        return $result;
     }
 
     public function dispatch()
     {
-        $this->compile();
+        Debug::v($this->routes);
+        $route = $this->compile();
+        Debug::v($route);
+        die;
 
         // routing
-        if ('' === $this->route)
+        if ('' === $this->pathinfo)
         {
             $controller = $this->default_controller;
             $action = $this->default_action;
         }
-        elseif (strpos($this->route, '/') === false)
+        elseif (strpos($this->pathinfo, '/') === false)
         {
-            $controller = $this->route;
+            $controller = $this->pathinfo;
             $action = $this->default_action;
         }
         else
         {
-            $segments = explode('/', $this->route);
+            $segments = explode('/', $this->pathinfo);
             $controller = $segments[0];
             $action = $segments[1];
             $params = array_slice($segments, 2);
