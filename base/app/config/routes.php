@@ -46,29 +46,33 @@ return [
         }
     ],
     /*
+     * :controller :action :id
+     */
+    '/:controller/:action/:id' => [],
+    /*
+     * :controller :action
+     */
+    '/:controller/:action' => [],
+    /*
      * :controller index
      */
     '/:controller' => [
         'action' => 'index',
-        ],
+    ],
     /*
-     * :controller :action :id
+     * not found
      */
-//    '/:controller/:action/:id' => array(
-//    ),
-    // :controller :action
-    '/:controller/:action/' => array(),
-    // not found
-//    '' => array(
-//        'controller' => 404,
-//        'action' => 'index',
-//        'func' => function($params)
-//        {
-//            $segments = explode('/', trim($params['pathinfo'], '/'));
-//
-//            if (true)
-//            {
-//                return ['controller' => reset($segments), 'action' => end($segments)];
-//            }
-//        }),
+    '' => [
+        'controller' => 404,
+        'action' => 'index',
+        'func' => function($params)
+        {
+            $segments = explode('/', trim($params['pathinfo'], '/'));
+
+            if (true)
+            {
+                return ['controller' => reset($segments), 'action' => end($segments)];
+            }
+        }
+    ],
 ];

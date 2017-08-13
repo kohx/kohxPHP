@@ -82,19 +82,20 @@ class Router {
             $segments = explode('/', ltrim($route, '/'));
 
             $pattern = '[^/]';
+//            $pattern = '[1-9a-zA-Z_-]';
+//            $pattern = '[1-9]';
+//            $pattern = '[a-zA-Z_-]';
 
-            foreach ($segments as $key => $value)
+            foreach ($segments as &$segment)
             {
                 // has param
-                if (0 === strpos($value, ':'))
+                if (strpos($segment, ':') === 0)
                 {
-                    $name = substr($value, 1);
-                    $value = '(?<' . $name . '>' . $pattern . '+)';
+                    $name = substr($segment, 1);
+                    $segment = "(?<{$name}>{$pattern}+)";
                 }
-                $tokens[$key] = $value;
             }
-
-            $params['pattern'] = '#^/' . implode('/', $tokens) . '$#';
+            $params['pattern'] = '#^/' . implode('/', $segments) . '$#';
         }
 
         // if the first letter is not "/" addition "/"
@@ -107,17 +108,16 @@ class Router {
         $result = [];
         foreach ($this->routes as &$params)
         {
-
             // Declare matches
             $matches = [];
             if (preg_match(Arr::get($params, 'pattern'), $this->pathinfo, $matches))
             {
-                foreach ($matches as $key => $value)
+                foreach ($matches as $key => $segment)
                 {
                     // When not number set to result
                     if (!is_numeric($key))
                     {
-                        $params[$key] = $value;
+                        $params[$key] = $segment;
                     }
                 }
 
@@ -136,10 +136,10 @@ class Router {
         if (Arr::get($result, 'func'))
         {
             $temp = Arr::get($result, 'func')($result);
-            
-            foreach ($temp as $key => $value)
+
+            foreach ($temp as $key => $segment)
             {
-                $result[$key] = $value;
+                $result[$key] = $segment;
             }
         }
 
@@ -148,10 +148,7 @@ class Router {
 
     public function dispatch()
     {
-        Debug::v($this->routes);
         $route = $this->compile();
-        Debug::v($route);
-        die;
 
         // routing
         if ('' === $this->pathinfo)
