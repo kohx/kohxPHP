@@ -21,6 +21,9 @@ class IndexController {
         
         $bind = '1234';
         $title = 'asdf';
+        
+        Debug::v(Request::baseurl());
+        die;
 
         $view = View::fact();
         $view->file('index')

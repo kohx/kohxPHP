@@ -1,0 +1,68 @@
+[2017-09-02 04:56:31] info[0]
+あいうえお
+
+[2017-09-02 04:56:33] info[0]
+あいうえお
+
+[2017-09-02 04:56:35] info[0]
+あいうえお
+
+[2017-09-02 04:56:35] HttpException[400]
+'Test' 
+ in C:\wamp64\www\logger\main.php:57
+
+[2017-09-02 04:56:39] info[0]
+あいうえお
+
+[2017-09-02 04:56:39] Fatal Error[1]
+Uncaught TypeError: Argument 1 passed to Log::exception_handler() must be an instance of Exception, instance of Error given in C:\wamp64\www\logger\classese\Log.php:243
+Stack trace:
+#0 [internal function]: Log::exception_handler(Object(Error))
+#1 {main}
+  thrown
+ in C:\wamp64\www\logger\classese\Log.php:243
+[2017-09-02 04:56:44] info[0]
+あいうえお
+
+[2017-09-02 04:56:44] ErrorException[0]
+'Warning[2]: Missing argument 1 for Create_error::er0(), called in C:\wamp64\www\logger\main.php on line 69 and defined' 
+ in C:\wamp64\www\logger\main.php:21
+[ Stack trace ]
+#0 C:\wamp64\www\logger\main.php(21): Log::error_handler(Int(2), "Missing argument 1 for Create_error::er0(), called in C:\wamp64\www\logger\main.php on line 69 and defined", "C:\wamp64\www\logger\main.php", Int(21), Array[])
+#1 C:\wamp64\www\logger\main.php(69): Create_error::er0()
+
+[2017-09-02 04:56:50] info[0]
+あいうえお
+
+[2017-09-02 04:56:50] ErrorException[0]
+'Notice[8]: Undefined variable: b' 
+ in C:\wamp64\www\logger\main.php:28
+[ Stack trace ]
+#0 C:\wamp64\www\logger\main.php(28): Log::error_handler(Int(8), "Undefined variable: b", "C:\wamp64\www\logger\main.php", Int(28), Array[])
+#1 C:\wamp64\www\logger\main.php(73): Create_error::er1()
+
+[2017-09-02 04:56:52] info[0]
+あいうえお
+
+[2017-09-02 04:56:52] ErrorException[0]
+'Notice[8]: Only variables should be passed by reference' 
+ in C:\wamp64\www\logger\main.php:78
+[ Stack trace ]
+#0 C:\wamp64\www\logger\main.php(78): Log::error_handler(Int(8), "Only variables should be passed by reference", "C:\wamp64\www\logger\main.php", Int(78), Array["_GET"=>Array, "_POST"=>Array, "_COOKIE"=>Array, "_SERVER"=>Array, "_ENV"=>Array, "_REQUEST"=>Array, "_FILES"=>Array, "var"=>Int(2)])
+
+[2017-09-02 04:56:56] info[0]
+あいうえお
+
+[2017-09-02 04:57:02] info[0]
+あいうえお
+
+[2017-09-02 04:57:05] info[0]
+あいうえお
+
+[2017-09-02 04:57:05] ErrorException[0]
+'User Fatal Error[256]: Test' 
+ in C:\wamp64\www\logger\main.php:91
+[ Stack trace ]
+#0 (0): Log::error_handler(Int(256), "Test", "C:\wamp64\www\logger\main.php", Int(91), Array["_GET"=>Array, "_POST"=>Array, "_COOKIE"=>Array, "_SERVER"=>Array, "_ENV"=>Array, "_REQUEST"=>Array, "_FILES"=>Array])
+#1 C:\wamp64\www\logger\main.php(91): trigger_error("Test", Int(256))
+

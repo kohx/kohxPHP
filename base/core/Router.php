@@ -2,12 +2,15 @@
 
 namespace core;
 
+use \Exception;
+
 /**
  * Route class
  *
  * @author kohei okuda
  */
-class Router {
+class Router
+{
 
     const CONTROLLEER_SUFFIX = 'Controller';
     const ACTION_SUFFIX = 'Action';
@@ -26,31 +29,40 @@ class Router {
     protected $params = [];
     protected $controlle_instance = null;
 
-    public static function inst($routes = [])
-    {
-        if (is_null(self::$instance))
-        {
-            self::$instance = new static($routes);
+    /**
+     * inst
+     * 
+     * @param array $routes
+     * @return Router
+     */
+    public static function inst( $routes = [] ) {
+
+        if ( is_null( self::$instance ) ) {
+
+            self::$instance = new static( $routes );
         }
 
         return static::$instance;
     }
 
-    public function __construct($routes = [])
-    {
+    /**
+     * construct
+     * 
+     * @param array $routes
+     */
+    public function __construct( $routes = [] ) {
+
         $this->pathinfo = Request::pathinfo();
 
         // When has toutes
-        if ($routes)
-        {
+        if ( $routes ) {
             // Set routes
-            foreach ($routes as $key => $value)
-            {
-                $controller = Arr::get($value, 'controller');
-                $action = Arr::get($value, 'action');
-                $func = Arr::get($value, 'func');
+            foreach ( $routes as $key => $value ) {
+                $controller = Arr::get( $value, 'controller' );
+                $action = Arr::get( $value, 'action' );
+                $func = Arr::get( $value, 'func' );
 
-                $this->set($key, $controller, $action, $func);
+                $this->set( $key, $controller, $action, $func );
             }
         }
     }
@@ -62,8 +74,8 @@ class Router {
      * @param string $controller
      * @param string $action
      */
-    public function set(string $route, string $controller = null, string $action = null, callable $func = null)
-    {
+    public function set( string $route, string $controller = null, string $action = null, callable $func = null ) {
+
         $this->routes[$route] = [
             'route' => $route,
             'controller' => $controller,
@@ -74,49 +86,41 @@ class Router {
         return $this;
     }
 
-    protected function compile()
-    {
+    protected function compile() {
+
         // Iterate routes whith set patterns
-        foreach ($this->routes as $route => &$params)
-        {
-            $segments = explode('/', ltrim($route, '/'));
+        foreach ( $this->routes as $route => &$params ) {
+            $segments = explode( '/', ltrim( $route, '/' ) );
 
             $pattern = '[^/]';
 //            $pattern = '[1-9a-zA-Z_-]';
 //            $pattern = '[1-9]';
 //            $pattern = '[a-zA-Z_-]';
 
-            foreach ($segments as &$segment)
-            {
+            foreach ( $segments as &$segment ) {
                 // has param
-                if (strpos($segment, ':') === 0)
-                {
-                    $name = substr($segment, 1);
+                if ( strpos( $segment, ':' ) === 0 ) {
+                    $name = substr( $segment, 1 );
                     $segment = "(?<{$name}>{$pattern}+)";
                 }
             }
-            $params['pattern'] = '#^/' . implode('/', $segments) . '$#';
+            $params['pattern'] = '#^/' . implode( '/', $segments ) . '$#';
         }
 
         // if the first letter is not "/" addition "/"
-        if (substr($this->pathinfo, 0, 1) !== '/')
-        {
+        if ( substr( $this->pathinfo, 0, 1 ) !== '/' ) {
             $this->pathinfo = '/' . $this->pathinfo;
         }
 
         // Iterate routes with get route params from this route
         $result = [];
-        foreach ($this->routes as &$params)
-        {
+        foreach ( $this->routes as &$params ) {
             // Declare matches
             $matches = [];
-            if (preg_match(Arr::get($params, 'pattern'), $this->pathinfo, $matches))
-            {
-                foreach ($matches as $key => $segment)
-                {
+            if ( preg_match( Arr::get( $params, 'pattern' ), $this->pathinfo, $matches ) ) {
+                foreach ( $matches as $key => $segment ) {
                     // When not number set to result
-                    if (!is_numeric($key))
-                    {
+                    if ( ! is_numeric( $key ) ) {
                         $params[$key] = $segment;
                     }
                 }
@@ -124,8 +128,7 @@ class Router {
                 $result = $params;
                 break;
             }
-            else
-            {
+            else {
                 $result = $params;
             }
 
@@ -133,12 +136,11 @@ class Router {
         }
 
         // When result has func
-        if (Arr::get($result, 'func'))
-        {
-            $temp = Arr::get($result, 'func')($result);
+        if ( Arr::get( $result, 'func' ) ) {
+            
+            $temp = Arr::get( $result, 'func' )( $result );
 
-            foreach ($temp as $key => $segment)
-            {
+            foreach ( $temp as $key => $segment ) {
                 $result[$key] = $segment;
             }
         }
@@ -146,35 +148,25 @@ class Router {
         return $result;
     }
 
-    public function dispatch()
-    {
+    public function dispatch() {
+        
         $route = $this->compile();
+        
+        $controller = Arr::get( $route, 'controller' );
+        $action = Arr::get( $route, 'action' );
+//        var_dump( $route );
 
-        // routing
-        if ('' === $this->pathinfo)
-        {
-            $controller = $this->default_controller;
-            $action = $this->default_action;
-        }
-        elseif (strpos($this->pathinfo, '/') === false)
-        {
-            $controller = $this->pathinfo;
-            $action = $this->default_action;
-        }
-        else
-        {
-            $segments = explode('/', $this->pathinfo);
-            $controller = $segments[0];
-            $action = $segments[1];
-            $params = array_slice($segments, 2);
-        }
+        $params = array_filter( $route, function($value) {
+            $filter = [ 'route' ];
+            return in_array( $value, $filter );
+        } );
+//        var_dump( $params );
 
         // controller to upper snake
-        $segments = explode('_', $controller);
+        $segments = explode( '_', $controller );
 
-        foreach ($segments as &$segment)
-        {
-            $segment = ucfirst(strtolower($segment));
+        foreach ( $segments as &$segment ) {
+            $segment = ucfirst( strtolower( $segment ) );
         }
 
         // set controller name, action name and params
@@ -183,52 +175,50 @@ class Router {
         $this->params = $params ?? [];
 
         // build controller file path and full namespace
-        $controller_file = APP_PATH . self::CONTROLLER_DIR . DS . implode(DS, $segments) . self::CONTROLLEER_SUFFIX . EXT;
+        $controller_file = APP_PATH . self::CONTROLLER_DIR . DS . implode( DS, $segments ) . self::CONTROLLEER_SUFFIX . EXT;
         $controller_full = APP_NAMESPACE . NS . self::CONTROLLER_DIR . NS . $this->controller;
-
-        try
-        {
+        
+        try {
+            
             // check controller file
-            if (!(file_exists($controller_file) AND is_readable($controller_file)))
-            {
-                throw new \Exception('controller not found!');
+            if ( ! (file_exists( $controller_file ) AND is_readable( $controller_file )) ) {
+                throw new Exception( 'controller not found!' );
             }
+           
             // require
             require_once $controller_file;
 
             // check class
-            if (!class_exists($controller_full))
-            {
-                throw new \Exception('controller not exist!');
+            if ( ! class_exists( $controller_full ) ) {
+                Debug::v('in');
+                die;
+                throw new Exception( 'controller not exist!' );
             }
 
             // make controller instance
-            $this->controlle_instance = new $controller_full($this->params);
+            $this->controlle_instance = new $controller_full( $this->params );
 
             // chekc action
-            if (!method_exists($this->controlle_instance, $this->action))
-            {
-                throw new \Exception('action not exist!');
+            if ( ! method_exists( $this->controlle_instance, $this->action ) ) {
+                throw new Exception( 'action not exist!' );
             }
 
             // do action
             $this->controlle_instance->{$this->action}();
         }
-        catch (\Exception $exc)
-        {
+        catch ( Exception $exc ) {
+            
             echo $exc->getMessage() . '<br />';
-            echo nl2br($exc->getTraceAsString());
+            echo nl2br( $exc->getTraceAsString() );
         }
     }
 
     // seter
-    public function setDefaultController($controller)
-    {
+    public function setDefaultController( $controller ) {
         $this->default_controller = $controller;
     }
 
-    public function setDefaultAction($acton)
-    {
+    public function setDefaultAction( $acton ) {
         $this->default_action = $acton;
     }
 

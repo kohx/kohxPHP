@@ -7,7 +7,7 @@ return [
      * The default route
      */
     '/' => [
-        'controller' => 'home',
+        'controller' => 'index',
         'action' => 'index',
     ],
     /*

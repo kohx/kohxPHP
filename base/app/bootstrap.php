@@ -5,8 +5,7 @@ spl_autoload_register(array('AutoLoader', 'loadClass'));
 
 use core\Router;
 use core\Config;
-
-
+use core\Arr;
 
 /*
  * routing

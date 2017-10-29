@@ -11,7 +11,7 @@ use core\Arr;
  *
  * @author pass
  */
-class Home_ProductController extends Controller {
+class HomeProductController extends Controller {
 
     public function __construct($params)
     {
