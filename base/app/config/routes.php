@@ -47,16 +47,16 @@ return [
      * backend
      */
     '/backend/:controller/:action/:id' => [
-        'file' => 'backend',
+        'directory' => 'backend',
     ],
     '/backend/:controller/:action' => [
-        'file' => 'backend',
+        'directory' => 'backend',
     ],
     '/backend/:controller' => [
-        'file' => 'backend',
+        'directory' => 'backend',
     ],
     '/backend' => [
-        'file' => 'backend',
+        'directory' => 'backend',
     ],
     /*
      * default
