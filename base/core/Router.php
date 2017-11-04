@@ -35,11 +35,11 @@ class Router
      * @param array $routes
      * @return Router
      */
-    public static function inst( $routes = [] ) {
+    public static function inst($routes = []) {
 
-        if ( is_null( self::$instance ) ) {
+        if (is_null(self::$instance)) {
 
-            self::$instance = new static( $routes );
+            self::$instance = new static($routes);
         }
 
         return static::$instance;
@@ -50,19 +50,20 @@ class Router
      * 
      * @param array $routes
      */
-    public function __construct( $routes = [] ) {
+    public function __construct($routes = []) {
 
         $this->pathinfo = Request::pathinfo();
 
         // When has toutes
-        if ( $routes ) {
+        if ($routes) {
             // Set routes
-            foreach ( $routes as $key => $value ) {
-                $controller = Arr::get( $value, 'controller' );
-                $action = Arr::get( $value, 'action' );
-                $func = Arr::get( $value, 'func' );
+            foreach ($routes as $key => $value) {
+                $directory = Arr::get($value, 'directory');
+                $controller = Arr::get($value, 'controller');
+                $action = Arr::get($value, 'action');
+                $func = Arr::get($value, 'func');
 
-                $this->set( $key, $controller, $action, $func );
+                $this->set($key, $directory, $controller, $action, $func);
             }
         }
     }
@@ -74,10 +75,11 @@ class Router
      * @param string $controller
      * @param string $action
      */
-    public function set( string $route, string $controller = null, string $action = null, callable $func = null ) {
+    public function set(string $route, string $directory = null, string $controller = null, string $action = null, callable $func = null) {
 
         $this->routes[$route] = [
             'route' => $route,
+            'directory' => $directory,
             'controller' => $controller,
             'action' => $action,
             'func' => $func,
@@ -89,38 +91,43 @@ class Router
     protected function compile() {
 
         // Iterate routes whith set patterns
-        foreach ( $this->routes as $route => &$params ) {
-            $segments = explode( '/', ltrim( $route, '/' ) );
+        foreach ($this->routes as $route => &$params) {
+            $segments = explode('/', ltrim($route, '/'));
 
             $pattern = '[^/]';
 //            $pattern = '[1-9a-zA-Z_-]';
 //            $pattern = '[1-9]';
 //            $pattern = '[a-zA-Z_-]';
 
-            foreach ( $segments as &$segment ) {
+            foreach ($segments as &$segment) {
                 // has param
-                if ( strpos( $segment, ':' ) === 0 ) {
-                    $name = substr( $segment, 1 );
+                if (strpos($segment, ':') === 0) {
+                    $name = substr($segment, 1);
                     $segment = "(?<{$name}>{$pattern}+)";
                 }
             }
-            $params['pattern'] = '#^/' . implode( '/', $segments ) . '$#';
+            $params['pattern'] = '#^/' . implode('/', $segments) . '$#';
         }
 
         // if the first letter is not "/" addition "/"
-        if ( substr( $this->pathinfo, 0, 1 ) !== '/' ) {
+        if (substr($this->pathinfo, 0, 1) !== '/') {
             $this->pathinfo = '/' . $this->pathinfo;
         }
 
         // Iterate routes with get route params from this route
         $result = [];
-        foreach ( $this->routes as &$params ) {
-            // Declare matches
+
+        // ルートを検索
+        foreach ($this->routes as &$params) {
+
+            $pattern = Arr::get($params, 'pattern');
             $matches = [];
-            if ( preg_match( Arr::get( $params, 'pattern' ), $this->pathinfo, $matches ) ) {
-                foreach ( $matches as $key => $segment ) {
-                    // When not number set to result
-                    if ( ! is_numeric( $key ) ) {
+            if (preg_match($pattern, $this->pathinfo, $matches)) {
+                // プレグマッチの結果をチェック
+                foreach ($matches as $key => $segment) {
+
+                    // サブパターンだけを取得するので結果がナンバー以外をパーラムとして取得
+                    if ( ! is_numeric($key)) {
                         $params[$key] = $segment;
                     }
                 }
@@ -135,12 +142,13 @@ class Router
             $result['pathinfo'] = $this->pathinfo;
         }
 
-        // When result has func
-        if ( Arr::get( $result, 'func' ) ) {
-            
-            $temp = Arr::get( $result, 'func' )( $result );
+        // resultがfuncを持っている場合
+        if (Arr::get($result, 'func')) {
 
-            foreach ( $temp as $key => $segment ) {
+            $temp = Arr::get($result, 'func')($result);
+
+            foreach ($temp as $key => $segment) {
+
                 $result[$key] = $segment;
             }
         }
@@ -148,77 +156,75 @@ class Router
         return $result;
     }
 
+    // $this->pathinfo で振り分け
     public function dispatch() {
-        
+
+        // compiled route
         $route = $this->compile();
+
+        // set directory name
+        $directory = Arr::get($route, 'directory');
+        $this->directory = $directory ? strtolower(trim($directory, '/')) : '';
+
+        // set controller name
+        $controller = Arr::get($route, 'controller');
+        $this->controller = $controller ? strtolower($controller) . self::CONTROLLEER_SUFFIX : $this->default_controller . self::CONTROLLEER_SUFFIX;
         
-        $controller = Arr::get( $route, 'controller' );
-        $action = Arr::get( $route, 'action' );
-//        var_dump( $route );
+        // set action name
+        $action = Arr::get($route, 'action');
+        $this->action = $action ? strtolower($action) . self::ACTION_SUFFIX : $this->default_action . self::ACTION_SUFFIX;
 
-        $params = array_filter( $route, function($value) {
-            $filter = [ 'route' ];
-            return in_array( $value, $filter );
-        } );
-//        var_dump( $params );
+        // select ather then 'route', 'func', 'pattern'
+        $this->params = Arr::filterKeys($route, ['route', 'func', 'pattern']);
 
-        // controller to upper snake
-        $segments = explode( '_', $controller );
+        // build controller file path
+        $directory_ds = $this->directory ? str_replace('/', DS, $this->directory) : '';
+        $controller_file = APP_PATH . self::CONTROLLER_DIR . DS . $directory_ds . DS . $this->controller . EXT;
 
-        foreach ( $segments as &$segment ) {
-            $segment = ucfirst( strtolower( $segment ) );
-        }
+        // ネームスペースをビルド
+        $directory_ns = $this->directory ? str_replace('/', NS, $this->directory) : '';
+        $controller_namespace = APP_NAMESPACE . NS . self::CONTROLLER_DIR . NS . $directory_ns . NS . $this->controller;
 
-        // set controller name, action name and params
-        $this->controller = implode('_', $segments) . self::CONTROLLEER_SUFFIX;
-        $this->action = ucfirst(strtolower($action)) . self::ACTION_SUFFIX;
-        $this->params = $params ?? [];
-
-        // build controller file path and full namespace
-        $controller_file = APP_PATH . self::CONTROLLER_DIR . DS . implode( DS, $segments ) . self::CONTROLLEER_SUFFIX . EXT;
-        $controller_full = APP_NAMESPACE . NS . self::CONTROLLER_DIR . NS . $this->controller;
-        
         try {
-            
+
             // check controller file
-            if ( ! (file_exists( $controller_file ) AND is_readable( $controller_file )) ) {
-                throw new Exception( 'controller not found!' );
+            if ( ! (file_exists($controller_file) AND is_readable($controller_file))) {
+                throw new Exception($controller_file . ': controller not found!');
             }
-           
+
             // require
             require_once $controller_file;
 
             // check class
-            if ( ! class_exists( $controller_full ) ) {
-                Debug::v('in');
-                die;
-                throw new Exception( 'controller not exist!' );
+            if ( ! class_exists($controller_namespace)) {
+
+                throw new Exception('controller not exist!');
             }
 
             // make controller instance
-            $this->controlle_instance = new $controller_full( $this->params );
+            $this->controlle_instance = new $controller_namespace($this->params);
 
             // chekc action
-            if ( ! method_exists( $this->controlle_instance, $this->action ) ) {
-                throw new Exception( 'action not exist!' );
+            if ( ! method_exists($this->controlle_instance, $this->action)) {
+                throw new Exception('action not exist!');
             }
 
             // do action
             $this->controlle_instance->{$this->action}();
         }
-        catch ( Exception $exc ) {
-            
+        catch (Exception $exc) {
+
             echo $exc->getMessage() . '<br />';
-            echo nl2br( $exc->getTraceAsString() );
+            echo nl2br($exc->getTraceAsString());
         }
     }
 
     // seter
-    public function setDefaultController( $controller ) {
+    public function setDefaultController($controller) {
         $this->default_controller = $controller;
     }
 
-    public function setDefaultAction( $acton ) {
+    public function setDefaultAction($acton) {
         $this->default_action = $acton;
     }
 

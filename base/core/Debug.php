@@ -13,11 +13,15 @@ class Debug {
     protected $_start_timer = [];
     protected $_end_timer = [];
 
-    public static function v($value)
+    public static function v($value, $message = '')
     {
         $bt = debug_backtrace();
         $file = Arr::get($bt, '0.file');
         $line = Arr::get($bt, '0.line');
+        
+        if($message) {
+            echo "[ {$message} ]<br/ >";
+        }
 
         echo "{$file} - {$line}<br/ ><pre>";
         var_export($value);

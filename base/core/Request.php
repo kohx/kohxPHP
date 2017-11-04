@@ -78,6 +78,7 @@ class Request {
         {
             $baseuri = $script_name;
         }
+        
         // not use index.php
         elseif (strpos($request_uri, dirname($script_name)) === 0)
         {
