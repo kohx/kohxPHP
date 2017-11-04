@@ -11,7 +11,6 @@ class Arr {
 
     public static $delimiter = '.';
 
-
     public static function get(array $array, $path, $default = null, $delimiter = null)
     {
         if (array_key_exists($path, $array))
