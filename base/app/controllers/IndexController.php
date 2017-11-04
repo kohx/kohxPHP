@@ -22,13 +22,13 @@ class IndexController {
         $bind = '1234';
         $title = 'asdf';
         
-        Debug::v(Request::baseurl());
-        die;
-
+        Request::Get();
+        Request::baseuri();
+        
         $view = View::fact();
         $view->file('index')
                 ->set('title', $title)
-                ->set('base_url', Request::baseurl())
+//                ->set('base_url', Request::baseurl())
                 ->set([
                     'name' => 'aaa',
                     'age' => 40

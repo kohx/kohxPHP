@@ -1,7 +1,5 @@
 <?php
 
-use core\Debug;
-
 return [
     /*
      * The default route
@@ -35,8 +33,8 @@ return [
      */
     '/home/:action/:id' => [
         'controller' => 'home',
-        'func' => function($params)
-        {
+        'func' => function($params) {
+    
             $route = [
                 'controller' => $params['controller'],
                 'action' => $params['action'],
@@ -46,6 +44,23 @@ return [
         }
     ],
     /*
+     * backend
+     */
+    '/backend/:controller/:action/:id' => [
+        'file' => 'backend',
+    ],
+    '/backend/:controller/:action' => [
+        'file' => 'backend',
+    ],
+    '/backend/:controller' => [
+        'file' => 'backend',
+    ],
+    '/backend' => [
+        'file' => 'backend',
+    ],
+    /*
+     * default
+     * 
      * :controller :action :id
      */
     '/:controller/:action/:id' => [],
@@ -65,13 +80,11 @@ return [
     '' => [
         'controller' => 404,
         'action' => 'index',
-        'func' => function($params)
-        {
-            $segments = explode('/', trim($params['pathinfo'], '/'));
+        'func' => function($params) {
+            $segments = explode( '/', trim( $params['pathinfo'], '/' ) );
 
-            if (true)
-            {
-                return ['controller' => reset($segments), 'action' => end($segments)];
+            if ( true ) {
+                return [ 'controller' => reset( $segments ), 'action' => end( $segments ) ];
             }
         }
     ],

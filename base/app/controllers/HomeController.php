@@ -2,40 +2,64 @@
 
 namespace app\controllers;
 
-use core\Controller;
 use core\Request;
-use core\Arr;
+use core\View;
 
-/**
- * Description of IndexController
- *
- * @author pass
- */
-class HomeProductController extends Controller {
+class HomeController
+{
 
-    public function __construct($params)
-    {
-        parent::__construct($params);
+    public $params = [];
+
+    public function __construct( $params = null ) {
+        $this->params = $params;
     }
 
-    public function IndexAction()
-    {
+    public function indexAction() {
+        
+        View::setGlobal( 'global', 'ggggg' );
+        View::setGlobal( 'global2', '<div>ggggg!</div>', false );
+
+        $bind = '1234';
+        $title = 'asdf';
+
+        Request::Get();
+
+        $view = View::fact();
+        $view->file( 'index' )
+                ->set( 'title', $title )
+//                ->set('base_url', Request::baseurl())
+                ->set( [
+                    'name' => 'aaa',
+                    'age' => 40
+                ] )
+                ->bind( 'bind', $bind )
+                ->part( 'header', 'parts/header' );
+
+        $bind = 'change';
+        $title = 'change';
+//        
+        $body = $view->render();
+
+        echo $body;
+    }
+
+    public function productAction() {
+        
 //        var_dump($this->params);
         echo 'product';
 
         $array = [
-            ['id' => 0, 'age' => 10],
-            ['id' => 1, 'age' => 20],
-            ['id' => 2, 'age' => 30],
+            [ 'id' => 0, 'age' => 10 ],
+            [ 'id' => 1, 'age' => 20 ],
+            [ 'id' => 2, 'age' => 30 ],
         ];
 //        var_dump(Arr::pluck($array, 'age', 'id'));
 
-        $result = Arr::map($array, function($v, $k)
-                {
-                    return $v + 1;
-                }, 'age');
-                
-        var_dump($result);
+//        $result = Arr::map( $array, function($v, $k) {
+//                    return $v + 1;
+//                }, 'age' );
+//
+//        var_dump( $result );
 
 //        $array = [
 //            111,

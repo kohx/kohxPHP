@@ -7,42 +7,36 @@ namespace core;
  *
  * @author kohei okuda
  */
-class Arr {
+class Arr
+{
 
     public static $delimiter = '.';
 
-    public static function get(array $array, $path, $default = null, $delimiter = null)
-    {
-        if (array_key_exists($path, $array))
-        {
+    public static function get( array $array, $path, $default = null, $delimiter = null ) {
+        if ( array_key_exists( $path, $array ) ) {
             // No need to do extra processing
             return $array[$path];
         }
 
-        if ($delimiter === null)
-        {
+        if ( $delimiter === null ) {
             $delimiter = Arr::$delimiter;
         }
 
         // Split the keys by delimiter
-        $keys = explode($delimiter, $path);
+        $keys = explode( $delimiter, $path );
 
         $temp = $array;
 
-        foreach ($keys as $key)
-        {
-            if (filter_var($key, FILTER_VALIDATE_INT))
-            {
+        foreach ( $keys as $key ) {
+            if ( filter_var( $key, FILTER_VALIDATE_INT ) ) {
                 // Make the key an integer
                 $key = (int) $key;
             }
 
-            if (isset($temp[$key]))
-            {
+            if ( isset( $temp[$key] ) ) {
                 $temp = $temp[$key];
             }
-            else
-            {
+            else {
                 $temp = false;
             }
         }
@@ -50,26 +44,21 @@ class Arr {
         return $temp ?: $default;
     }
 
-    public static function set(array &$array, string $path, $value, $delimiter = null)
-    {
-        if ($delimiter === null)
-        {
+    public static function set( array &$array, string $path, $value, $delimiter = null ) {
+        if ( $delimiter === null ) {
             // Use the default delimiter
             $delimiter = Arr::$delimiter;
         }
 
-        $keys = explode($delimiter, $path);
+        $keys = explode( $delimiter, $path );
 
-        foreach ($keys as $key)
-        {
-            if (filter_var($key, FILTER_VALIDATE_INT))
-            {
+        foreach ( $keys as $key ) {
+            if ( filter_var( $key, FILTER_VALIDATE_INT ) ) {
                 // Make the key an integer
                 $key = (int) $key;
             }
 
-            if (!isset($array[$key]))
-            {
+            if ( ! isset( $array[$key] ) ) {
                 $array[$key] = null;
             }
 
@@ -79,107 +68,83 @@ class Arr {
         $array = $value;
     }
 
-    public static function delete(array &$array, $path, $delimiter = null)
-    {
-        if ($delimiter === null)
-        {
+    public static function delete( array &$array, $path, $delimiter = null ) {
+        if ( $delimiter === null ) {
             // Use the default delimiter
             $delimiter = static::$delimiter;
         }
 
-        if (is_array($path))
-        {
-            foreach ($path as $key)
-            {
-                $return = static::delete($array, $key);
-                if (!$return)
-                {
+        if ( is_array( $path ) ) {
+            foreach ( $path as $key ) {
+                $return = static::delete( $array, $key );
+                if ( ! $return ) {
                     return false;
                 }
             }
         }
-        else
-        {
-            $segments = explode($delimiter, $path);
-            if (count($segments) === 1)
-            {
-                $delete_key = reset($segments);
-                if (filter_var($delete_key, FILTER_VALIDATE_INT))
-                {
+        else {
+            $segments = explode( $delimiter, $path );
+            if ( count( $segments ) === 1 ) {
+                $delete_key = reset( $segments );
+                if ( filter_var( $delete_key, FILTER_VALIDATE_INT ) ) {
                     // Make the key an integer
                     $delete_key = (int) $delete_key;
                 }
 
-                if (!static::keyExist($array, $delete_key))
-                {
+                if ( ! static::keyExist( $array, $delete_key ) ) {
                     return false;
                 }
 
-                unset($array[$delete_key]);
+                unset( $array[$delete_key] );
             }
-            else
-            {
-                $top_key = array_shift($segments);
-                if (filter_var($top_key, FILTER_VALIDATE_INT))
-                {
+            else {
+                $top_key = array_shift( $segments );
+                if ( filter_var( $top_key, FILTER_VALIDATE_INT ) ) {
                     // Make the key an integer
                     $top_key = (int) $top_key;
                 }
 
-                $after_key = implode($delimiter, $segments);
-                return static::delete($array[$top_key], $after_key);
+                $after_key = implode( $delimiter, $segments );
+                return static::delete( $array[$top_key], $after_key );
             }
         }
 
         return true;
     }
 
-    public static function pluck(array $array, $key, $index_key = null)
-    {
-        return array_column($array, $key, $index_key);
+    public static function pluck( array $array, $key, $index_key = null ) {
+        return array_column( $array, $key, $index_key );
     }
 
-    public static function toArr($obj)
-    {
-        return json_decode(json_encode($obj), 1);
+    public static function toArr( $obj ) {
+        return json_decode( json_encode( $obj ), 1 );
     }
 
-    public static function sort(array $array, $key, $direction = 'asc', $type = SORT_NUMERIC)
-    {
-        if ($direction == 'asc')
-        {
+    public static function sort( array $array, $key, $direction = 'asc', $type = SORT_NUMERIC ) {
+        if ( $direction == 'asc' ) {
             $direction = SORT_ASC;
         }
-        elseif ($direction == 'desc')
-        {
+        elseif ( $direction == 'desc' ) {
             $direction = SORT_DESC;
         }
 
-        return $result = array_multisort(array_column($array, $key), $direction, $type, $array);
+        return $result = array_multisort( array_column( $array, $key ), $direction, $type, $array );
     }
 
-    public static function map(array $array, callable $callbacks, $targets = null)
-    {
-        foreach ($array as $key => $val)
-        {
-            if (is_array($val))
-            {
-                $array[$key] = Arr::map($array[$key], $callbacks, $targets);
+    public static function map( array $array, callable $callbacks, $targets = null ) {
+        foreach ( $array as $key => $val ) {
+            if ( is_array( $val ) ) {
+                $array[$key] = Arr::map( $array[$key], $callbacks, $targets );
             }
-            else
-            {
-                if (is_null($targets) OR ( !is_null($targets) AND ( $targets === $key OR ( is_array($targets) AND in_array($key, $targets)))))
-                {
-                    if (is_array($callbacks))
-                    {
-                        foreach ($callbacks as $callback)
-                        {
-                            $array[$key] = call_user_func($callback, $array[$key], $key);
+            else {
+                if ( is_null( $targets ) OR ( ! is_null( $targets ) AND ( $targets === $key OR ( is_array( $targets ) AND in_array( $key, $targets )))) ) {
+                    if ( is_array( $callbacks ) ) {
+                        foreach ( $callbacks as $callback ) {
+                            $array[$key] = call_user_func( $callback, $array[$key], $key );
                         }
                     }
-                    else
-                    {
-                        $array[$key] = call_user_func($callbacks, $array[$key], $key);
+                    else {
+                        $array[$key] = call_user_func( $callbacks, $array[$key], $key );
                     }
                 }
             }
@@ -188,9 +153,8 @@ class Arr {
         return $array;
     }
 
-    public static function keyExist($array, $key)
-    {
-        return array_key_exists($key, $array);
+    public static function keyExist( $array, $key ) {
+        return array_key_exists( $key, $array );
     }
 
     /**
@@ -201,14 +165,11 @@ class Arr {
      * @param string $keyname
      * @return array
      */
-    public static function rotete(array $array, $keyname = 'id')
-    {
+    public static function rotete( array $array, $keyname = 'id' ) {
         $result = array();
 
-        foreach ($array as $key => $value)
-        {
-            foreach ($value as $k => $v)
-            {
+        foreach ( $array as $key => $value ) {
+            foreach ( $value as $k => $v ) {
                 $result[$keyname . $k][$key] = $v;
             }
         }
@@ -228,14 +189,13 @@ class Arr {
      * @param   array   $array  array to check
      * @return  boolean
      */
-    public static function isAssoc(array $array)
-    {
+    public static function isAssoc( array $array ) {
         // Keys of the array
-        $keys = array_keys($array);
+        $keys = array_keys( $array );
 
         // If the array keys of the keys match the keys, then the array must
         // not be associative (e.g. the keys array looked like {0:0, 1:1...}).
-        return array_keys($keys) !== $keys;
+        return array_keys( $keys ) !== $keys;
     }
 
     /**
@@ -253,17 +213,14 @@ class Arr {
      * @param   mixed   $value  value to check
      * @return  boolean
      */
-    public static function isArray($value)
-    {
-        if (is_array($value))
-        {
+    public static function isArray( $value ) {
+        if ( is_array( $value ) ) {
             // Definitely an array
             return true;
         }
-        else
-        {
+        else {
             // Possibly a Traversable object, functionally the same as an array
-            return (is_object($value) AND $value instanceof Traversable);
+            return (is_object( $value ) AND $value instanceof Traversable);
         }
     }
 
@@ -277,16 +234,13 @@ class Arr {
      * @param   integer $max    ending number
      * @return  array
      */
-    public static function range($step = 10, $max = 100)
-    {
-        if ($step < 1)
-        {
+    public static function range( $step = 10, $max = 100 ) {
+        if ( $step < 1 ) {
             return array();
         }
 
         $array = array();
-        for ($i = $step; $i <= $max; $i += $step)
-        {
+        for ( $i = $step; $i <= $max; $i += $step ) {
             $array[$i] = $i;
         }
 
@@ -309,12 +263,10 @@ class Arr {
      * @param   mixed  $default  default value
      * @return  array
      */
-    public static function extract($array, array $paths, $default = null)
-    {
+    public static function extract( $array, array $paths, $default = null ) {
         $found = array();
-        foreach ($paths as $path)
-        {
-            Arr::set_path($found, $path, Arr::path($array, $path, $default));
+        foreach ( $paths as $path ) {
+            Arr::set_path( $found, $path, Arr::path( $array, $path, $default ) );
         }
 
         return $found;
@@ -340,63 +292,46 @@ class Arr {
      * @param   array  $array2,...  array to merge
      * @return  array
      */
-    public static function merge($array1, $array2)
-    {
-        if (Arr::is_assoc($array2))
-        {
-            foreach ($array2 as $key => $value)
-            {
-                if (is_array($value)
-                        AND isset($array1[$key])
-                        AND is_array($array1[$key])
-                )
-                {
-                    $array1[$key] = Arr::merge($array1[$key], $value);
+    public static function merge( $array1, $array2 ) {
+        if ( Arr::is_assoc( $array2 ) ) {
+            foreach ( $array2 as $key => $value ) {
+                if ( is_array( $value )
+                        AND isset( $array1[$key] )
+                        AND is_array( $array1[$key] )
+                ) {
+                    $array1[$key] = Arr::merge( $array1[$key], $value );
                 }
-                else
-                {
+                else {
                     $array1[$key] = $value;
                 }
             }
         }
-        else
-        {
-            foreach ($array2 as $value)
-            {
-                if (!in_array($value, $array1, true))
-                {
+        else {
+            foreach ( $array2 as $value ) {
+                if ( ! in_array( $value, $array1, true ) ) {
                     $array1[] = $value;
                 }
             }
         }
 
-        if (func_num_args() > 2)
-        {
-            foreach (array_slice(func_get_args(), 2) as $array2)
-            {
-                if (Arr::is_assoc($array2))
-                {
-                    foreach ($array2 as $key => $value)
-                    {
-                        if (is_array($value)
-                                AND isset($array1[$key])
-                                AND is_array($array1[$key])
-                        )
-                        {
-                            $array1[$key] = Arr::merge($array1[$key], $value);
+        if ( func_num_args() > 2 ) {
+            foreach ( array_slice( func_get_args(), 2 ) as $array2 ) {
+                if ( Arr::is_assoc( $array2 ) ) {
+                    foreach ( $array2 as $key => $value ) {
+                        if ( is_array( $value )
+                                AND isset( $array1[$key] )
+                                AND is_array( $array1[$key] )
+                        ) {
+                            $array1[$key] = Arr::merge( $array1[$key], $value );
                         }
-                        else
-                        {
+                        else {
                             $array1[$key] = $value;
                         }
                     }
                 }
-                else
-                {
-                    foreach ($array2 as $value)
-                    {
-                        if (!in_array($value, $array1, true))
-                        {
+                else {
+                    foreach ( $array2 as $value ) {
+                        if ( ! in_array( $value, $array1, true ) ) {
                             $array1[] = $value;
                         }
                     }
@@ -424,19 +359,14 @@ class Arr {
      * @param   array   $array2 input arrays that will overwrite existing values
      * @return  array
      */
-    public static function overwrite($array1, $array2)
-    {
-        foreach (array_intersect_key($array2, $array1) as $key => $value)
-        {
+    public static function overwrite( $array1, $array2 ) {
+        foreach ( array_intersect_key( $array2, $array1 ) as $key => $value ) {
             $array1[$key] = $value;
         }
 
-        if (func_num_args() > 2)
-        {
-            foreach (array_slice(func_get_args(), 2) as $array2)
-            {
-                foreach (array_intersect_key($array2, $array1) as $key => $value)
-                {
+        if ( func_num_args() > 2 ) {
+            foreach ( array_slice( func_get_args(), 2 ) as $array2 ) {
+                foreach ( array_intersect_key( $array2, $array1 ) as $key => $value ) {
                     $array1[$key] = $value;
                 }
             }
@@ -462,25 +392,19 @@ class Arr {
      * @return  array
      * @since   3.0.6
      */
-    public static function flatten($array)
-    {
-        $is_assoc = Arr::is_assoc($array);
+    public static function flatten( $array ) {
+        $is_assoc = Arr::is_assoc( $array );
 
         $flat = array();
-        foreach ($array as $key => $value)
-        {
-            if (is_array($value))
-            {
-                $flat = array_merge($flat, Arr::flatten($value));
+        foreach ( $array as $key => $value ) {
+            if ( is_array( $value ) ) {
+                $flat = array_merge( $flat, Arr::flatten( $value ) );
             }
-            else
-            {
-                if ($is_assoc)
-                {
+            else {
+                if ( $is_assoc ) {
                     $flat[$key] = $value;
                 }
-                else
-                {
+                else {
                     $flat[] = $value;
                 }
             }
@@ -496,21 +420,41 @@ class Arr {
      * @param   bool   $remove  if true, removes the matched elements.
      * @return  array
      */
-    public static function filterKeys($array, $keys, $remove = false)
-    {
+    public static function filterKeys( $array, $keys, $remove = false ) {
         $return = array();
-        foreach ($keys as $key)
-        {
-            if (array_key_exists($key, $array))
-            {
+        foreach ( $keys as $key ) {
+            if ( array_key_exists( $key, $array ) ) {
                 $remove or $return[$key] = $array[$key];
-                if ($remove)
-                {
-                    unset($array[$key]);
+                if ( $remove ) {
+                    unset( $array[$key] );
                 }
             }
         }
         return $remove ? $array : $return;
+    }
+
+    // ↑
+    public static function filter( $array, $fillers, $target = 0 ) {
+
+        if ( ! is_array( $fillers ) ) {
+
+            $fillers = [ $fillers ];
+        }
+
+        if ( $target == 'key' || $target = 'keys' ) {
+
+            $flag = ARRAY_FILTER_USE_KEY;
+        }
+        if ( $target == 'value' || $target = 'values' ) {
+
+            $flag = ARRAY_FILTER_USE_KEY;
+        }
+
+        return array_filter( $array, function($value) use ($fillers) {
+
+            return !in_array($value, $fillers);
+            
+        }, $flag );
     }
 
 }

@@ -114,11 +114,15 @@ class Router
 
         // Iterate routes with get route params from this route
         $result = [];
+
         foreach ( $this->routes as &$params ) {
+            
             // Declare matches
             $matches = [];
+            
             if ( preg_match( Arr::get( $params, 'pattern' ), $this->pathinfo, $matches ) ) {
                 foreach ( $matches as $key => $segment ) {
+                    
                     // When not number set to result
                     if ( ! is_numeric( $key ) ) {
                         $params[$key] = $segment;
@@ -134,13 +138,17 @@ class Router
 
             $result['pathinfo'] = $this->pathinfo;
         }
+        
+        
+        Debug::v($params, 'hit root');
 
         // When result has func
         if ( Arr::get( $result, 'func' ) ) {
-            
+
             $temp = Arr::get( $result, 'func' )( $result );
 
             foreach ( $temp as $key => $segment ) {
+
                 $result[$key] = $segment;
             }
         }
@@ -148,19 +156,19 @@ class Router
         return $result;
     }
 
+    // $this->pathinfo で振り分け
     public function dispatch() {
-        
+
+        // compiled route
         $route = $this->compile();
         
+        $file = Arr::get( $route, 'file' );
         $controller = Arr::get( $route, 'controller' );
         $action = Arr::get( $route, 'action' );
-//        var_dump( $route );
 
-        $params = array_filter( $route, function($value) {
-            $filter = [ 'route' ];
-            return in_array( $value, $filter );
-        } );
-//        var_dump( $params );
+        $params = Arr::filter( $route, [ 'route', 'func', 'pattern' ] );
+
+        var_dump( $params );
 
         // controller to upper snake
         $segments = explode( '_', $controller );
@@ -168,30 +176,34 @@ class Router
         foreach ( $segments as &$segment ) {
             $segment = ucfirst( strtolower( $segment ) );
         }
+        
+        // $fileを追加する！
 
         // set controller name, action name and params
-        $this->controller = implode('_', $segments) . self::CONTROLLEER_SUFFIX;
-        $this->action = ucfirst(strtolower($action)) . self::ACTION_SUFFIX;
+        $this->controller = implode( '_', $segments ) . self::CONTROLLEER_SUFFIX;
+        $this->action = strtolower( $action ) . self::ACTION_SUFFIX;
         $this->params = $params ?? [];
+
+        Debug::v( $this->controller );
+        Debug::v( $this->action );
 
         // build controller file path and full namespace
         $controller_file = APP_PATH . self::CONTROLLER_DIR . DS . implode( DS, $segments ) . self::CONTROLLEER_SUFFIX . EXT;
         $controller_full = APP_NAMESPACE . NS . self::CONTROLLER_DIR . NS . $this->controller;
-        
+
         try {
-            
+
             // check controller file
             if ( ! (file_exists( $controller_file ) AND is_readable( $controller_file )) ) {
-                throw new Exception( 'controller not found!' );
+                throw new Exception( $controller_file . ': controller not found!' );
             }
-           
+
             // require
             require_once $controller_file;
 
             // check class
             if ( ! class_exists( $controller_full ) ) {
-                Debug::v('in');
-                die;
+
                 throw new Exception( 'controller not exist!' );
             }
 
@@ -207,7 +219,7 @@ class Router
             $this->controlle_instance->{$this->action}();
         }
         catch ( Exception $exc ) {
-            
+
             echo $exc->getMessage() . '<br />';
             echo nl2br( $exc->getTraceAsString() );
         }
